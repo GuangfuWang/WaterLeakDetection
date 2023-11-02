@@ -192,14 +192,14 @@ namespace water_leak
 					m_prev_res.erase(it);
 				}
 			}
-			std::cout<<"Mean: "<<sum<<"/ Threshold: "<<m_config->THRESHOLD<<std::endl;
+			// std::cout<<"Mean: "<<sum<<"/ Threshold: "<<m_config->THRESHOLD<<std::endl;
 			if (sum > m_config->THRESHOLD)
 			{				
 				latency++;
 				if(latency>=20){
 					res = 1;
 					latency = 0;
-					std::cout << "detected!=======================\n";
+					// std::cout << "detected!=======================\n";
 				}
 				
 			}
