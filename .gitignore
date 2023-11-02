@@ -3,3 +3,7 @@
 ./.idea
 
 ./.git
+
+./build
+
+./.vscode
