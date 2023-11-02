@@ -8,7 +8,13 @@ using namespace water_leak;
 int main(int argc, char** argv){
 	using path = std::filesystem::path;
 	//prepare the input data.
-	auto in_path = path("/home/wgf/Downloads/leakwater.mp4");
+	auto file = "/home/gpu/Downloads/datasets/water_leak/split/203.129-15-04-26-0-Trim.mp4";
+	
+	if(!Util::checkFileExist(file)){
+		std::cerr<<"Given video is not exist..."<<std::endl;
+		return 0;
+	}
+	auto in_path = path(file);
 	cv::VideoCapture cap(in_path);
 	cv::VideoWriter vw;
 	path output_path = in_path.parent_path() / (in_path.stem().string() + ".result.mp4");

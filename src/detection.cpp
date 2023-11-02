@@ -101,8 +101,8 @@ void WaterLeakDetection::detectWithCPU(cv::Mat &curr_img, int &res)
 
 WaterLeakDetection::WaterLeakDetection(SharedRef<Config>& config)
 {
-	reset_cnt = m_config->RESET_COUNT;
 	m_config = config;
+	reset_cnt = m_config->RESET_COUNT;
 }
 void WaterLeakDetection::init()
 {
