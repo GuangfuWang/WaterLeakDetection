@@ -26,17 +26,29 @@ public:
 	std::string VIDEO_FILE = "";
 	std::vector<int> IMAGE_SHAPE = {3, 608, 608};
 	std::vector<int> DETECTION_POS = {500, 200, 800, 900};
-	int TERM_CRITERIA_MAX_COUNT = 10;
-	float TERM_CRITERIA_EPSILON = 0.03f;
-	int MAX_CORNERS = 100;
-	float QUALITY_LEVEL = 0.3f;
-	int MIN_DIST = 7;
-	int BLOCK_SIZE = 7;
-	bool USE_HARRIS_DETECTOR = false;
-	float SIFT_K = 0.04f;
-	int PLK_MAX_LEVEL = 2;
+	int FLOW_METHOD = 1;
+
+	int LK_TERM_CRITERIA_MAX_COUNT = 10;
+	float LK_TERM_CRITERIA_EPSILON = 0.03f;
+	int LK_MAX_CORNERS = 100;
+	float LK_QUALITY_LEVEL = 0.3f;
+	int LK_MIN_DIST = 7;
+	int LK_BLOCK_SIZE = 7;
+	bool LK_USE_HARRIS_DETECTOR = false;
+	float LK_SIFT_K = 0.04f;
+	int LK_PLK_MAX_LEVEL = 2;
+
+	float FB_PYR_SACLE = 0.5;
+  	int FB_LEVELS = 3;
+  	int FB_WINSIZE= 15;
+  	int FB_ITERATIONS= 3;
+  	int FB_POLY_N= 5;
+  	float FB_POLYSIGMA= 1.2;
+  	int FB_FLAGS= 0;
+
 	int THRESHOLD_LEN = 10;
-	float THRESHOLD = 0.6f;
+	float THRESHOLD = 135.0f;
+	float THRESHOLD_UPPER = 160.0f;
 	int RESET_COUNT = 20;
 	bool ENABLE_MOVING_AVERAGE = true;
 	unsigned int MOVING_LEN = 10;

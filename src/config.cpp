@@ -17,6 +17,7 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 
 	if (!Util::checkFileExist(file)) {
 		std::cerr << "Config file for water leak non exists! Aborting..." << std::endl;
+		return;
 	}
 
 	YAML::Node config;
@@ -40,38 +41,65 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 		if (model_node["DETECTION_POS"].IsDefined()) {
 			DETECTION_POS = model_node["DETECTION_POS"].as<std::vector<int>>();
 		}
-		if (model_node["TERM_CRITERIA_MAX_COUNT"].IsDefined()) {
-			TERM_CRITERIA_MAX_COUNT = model_node["TERM_CRITERIA_MAX_COUNT"].as<int>();
+		if (model_node["FLOW_METHOD"].IsDefined()) {
+			FLOW_METHOD = model_node["FLOW_METHOD"].as<int>();
 		}
-		if (model_node["TERM_CRITERIA_EPSILON"].IsDefined()) {
-			TERM_CRITERIA_EPSILON = model_node["TERM_CRITERIA_EPSILON"].as<float>();
+		if (model_node["LK_TERM_CRITERIA_MAX_COUNT"].IsDefined()) {
+			LK_TERM_CRITERIA_MAX_COUNT = model_node["LK_TERM_CRITERIA_MAX_COUNT"].as<int>();
 		}
-		if (model_node["MAX_CORNERS"].IsDefined()) {
-			MAX_CORNERS = model_node["MAX_CORNERS"].as<int>();
+		if (model_node["LK_TERM_CRITERIA_EPSILON"].IsDefined()) {
+			LK_TERM_CRITERIA_EPSILON = model_node["LK_TERM_CRITERIA_EPSILON"].as<float>();
 		}
-		if (model_node["QUALITY_LEVEL"].IsDefined()) {
-			QUALITY_LEVEL = model_node["QUALITY_LEVEL"].as<float>();
+		if (model_node["LK_MAX_CORNERS"].IsDefined()) {
+			LK_MAX_CORNERS = model_node["LK_MAX_CORNERS"].as<int>();
 		}
-		if (model_node["MIN_DIST"].IsDefined()) {
-			MIN_DIST = model_node["MIN_DIST"].as<int>();
+		if (model_node["LK_QUALITY_LEVEL"].IsDefined()) {
+			LK_QUALITY_LEVEL = model_node["LK_QUALITY_LEVEL"].as<float>();
 		}
-		if (model_node["BLOCK_SIZE"].IsDefined()) {
-			BLOCK_SIZE = model_node["BLOCK_SIZE"].as<int>();
+		if (model_node["LK_MIN_DIST"].IsDefined()) {
+			LK_MIN_DIST = model_node["LK_MIN_DIST"].as<int>();
 		}
-		if (model_node["USE_HARRIS_DETECTOR"].IsDefined()) {
-			USE_HARRIS_DETECTOR = model_node["USE_HARRIS_DETECTOR"].as<bool>();
+		if (model_node["LK_BLOCK_SIZE"].IsDefined()) {
+			LK_BLOCK_SIZE = model_node["LK_BLOCK_SIZE"].as<int>();
 		}
-		if (model_node["SIFT_K"].IsDefined()) {
-			SIFT_K = model_node["SIFT_K"].as<float>();
+		if (model_node["LK_USE_HARRIS_DETECTOR"].IsDefined()) {
+			LK_USE_HARRIS_DETECTOR = model_node["LK_USE_HARRIS_DETECTOR"].as<bool>();
 		}
-		if (model_node["PLK_MAX_LEVEL"].IsDefined()) {
-			PLK_MAX_LEVEL = model_node["PLK_MAX_LEVEL"].as<int>();
+		if (model_node["LK_SIFT_K"].IsDefined()) {
+			LK_SIFT_K = model_node["LK_SIFT_K"].as<float>();
+		}
+		if (model_node["LK_PLK_MAX_LEVEL"].IsDefined()) {
+			LK_PLK_MAX_LEVEL = model_node["LK_PLK_MAX_LEVEL"].as<int>();
+		}
+		if (model_node["FB_PYR_SACLE"].IsDefined()) {
+			FB_PYR_SACLE = model_node["FB_PYR_SACLE"].as<float>();
+		}
+		if (model_node["FB_LEVELS"].IsDefined()) {
+			FB_LEVELS = model_node["FB_LEVELS"].as<int>();
+		}
+		if (model_node["FB_WINSIZE"].IsDefined()) {
+			FB_WINSIZE = model_node["FB_WINSIZE"].as<int>();
+		}
+		if (model_node["FB_ITERATIONS"].IsDefined()) {
+			FB_ITERATIONS = model_node["FB_ITERATIONS"].as<int>();
+		}
+		if (model_node["FB_POLY_N"].IsDefined()) {
+			FB_POLY_N = model_node["FB_POLY_N"].as<int>();
+		}
+		if (model_node["FB_POLYSIGMA"].IsDefined()) {
+			FB_POLYSIGMA = model_node["FB_POLYSIGMA"].as<float>();
+		}
+		if (model_node["FB_FLAGS"].IsDefined()) {
+			FB_FLAGS = model_node["FB_FLAGS"].as<int>();
 		}
 		if (model_node["THRESHOLD_LEN"].IsDefined()) {
 			THRESHOLD_LEN = model_node["THRESHOLD_LEN"].as<int>();
 		}
 		if (model_node["THRESHOLD"].IsDefined()) {
 			THRESHOLD = model_node["THRESHOLD"].as<float>();
+		}
+		if (model_node["THRESHOLD_UPPER"].IsDefined()) {
+			THRESHOLD_UPPER = model_node["THRESHOLD_UPPER"].as<float>();
 		}
 		if (model_node["ENABLE_MOVING_AVERAGE"].IsDefined()) {
 			ENABLE_MOVING_AVERAGE = model_node["ENABLE_MOVING_AVERAGE"].as<bool>();
@@ -123,7 +151,7 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 	else {
 		std::cerr << "Please set POST_PROCESS, " << std::endl;
 	}
-
+	std::cout<<"Parsing the Yaml config file done..."<<std::endl;
 	init = true;
 
 }

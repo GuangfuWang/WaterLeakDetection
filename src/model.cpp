@@ -52,7 +52,6 @@ void UpdateParams_Algorithm(cvModel *pModel){
 void Process_Algorithm(cvModel *pModel, cv::Mat &input_frame){
 	auto model = reinterpret_cast<InferModel *>(pModel->iModel);
 	model->mDeploy->detect(input_frame, pModel->alarm);
-	if(pModel->alarm)std::cout<<"detected!\n";
 }
 void Destroy_Algorithm(cvModel *pModel){
 	if (pModel->iModel){

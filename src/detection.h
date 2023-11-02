@@ -4,14 +4,14 @@
 #include <opencv4/opencv2/opencv.hpp>
 #include <opencv2/core/cuda.hpp>
 #include <opencv2/cudaimgproc.hpp>
+#include <opencv2/cudaoptflow.hpp>
 
 
 namespace water_leak
 {
-enum class FlowType{
+enum FlowType{
 	LK = 0,
 	FARNEBACK,
-	RLOF,
 };
 class WaterLeakDetection final
 {
@@ -21,6 +21,8 @@ public:
 
 	void detect(cv::Mat &curr_img, int &res);
 private:
+	void detectWithLK(cv::Mat &curr_img, int &res);
+	void detectWithFB(cv::Mat &curr_img, int &res);
 	void detectWithGPU(cv::Mat &curr_img, int &res);
 	void detectWithCPU(cv::Mat &curr_img, int &res);
 	void init();
@@ -31,8 +33,11 @@ private:
 	std::vector<float> m_prev_res;
 	//for mask out the uninterested area.
 	cv::Mat m_mask;
-	//for add the line.
+	cv::cuda::GpuMat m_cuda_mask;
+
+	//for add the line, LK stuff.
 	cv::Mat m_line_mask;
+	cv::cuda::GpuMat m_cuda_prev;
 	cv::Mat m_prev;
 	cv::TermCriteria criteria;
 	std::vector<uchar> m_status;
@@ -40,9 +45,14 @@ private:
 	std::vector<cv::Point2f> m_p1;
 	std::vector<cv::Scalar> m_colors;
 
+	//for FB stuff.
+	cv::Ptr<cv::cuda::FarnebackOpticalFlow> m_fb;
+
 	bool m_init = false;
 	float resize_x = 2.0f;
 	float resize_y = 2.0f;
 	int reset_cnt = 0;
+	int latency = 0;
+
 };
 }
