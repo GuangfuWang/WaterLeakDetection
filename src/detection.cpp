@@ -193,9 +193,8 @@ namespace water_leak
 				}
 			}
 			std::cout<<"Mean: "<<sum<<"/ Threshold: "<<m_config->THRESHOLD<<std::endl;
-			if (sum > 0.9f)
-			{
-				
+			if (sum > m_config->THRESHOLD)
+			{				
 				latency++;
 				if(latency>=20){
 					res = 1;
