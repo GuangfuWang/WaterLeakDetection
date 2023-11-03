@@ -49,7 +49,8 @@ public:
 	int THRESHOLD_LEN = 10;
 	float THRESHOLD = 135.0f;
 	float THRESHOLD_UPPER = 160.0f;
-	int RESET_COUNT = 20;
+	int RESET_COUNT = 100;
+	int ALARM_COUNT = 20;
 	bool ENABLE_MOVING_AVERAGE = true;
 	unsigned int MOVING_LEN = 10;
 	bool USE_GPU = true;
@@ -64,6 +65,7 @@ public:
 	double TEXT_FONT_SIZE = 2.0;
 	unsigned int TEXT_OFFSET_X = 400;
 	unsigned int TEXT_OFFSET_Y = 50;
+	std::string FONT_SRC = "";
 
 	bool init = false;
 };

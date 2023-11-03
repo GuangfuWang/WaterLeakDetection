@@ -34,7 +34,7 @@ typedef struct
 typedef struct
 {
 	cv_Point p[_Size_]; //用于画出ROI的点，请顺时针给出，目前支持四边形
-	int pointNum;	// 多边形点的个数
+	std::vector<int> pointNum;	// 多边形点的个数
 	int regionNum;  // 多边形个数
 	float lowtime;
 	float hightime;

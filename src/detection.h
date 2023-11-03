@@ -49,6 +49,7 @@ private:
 	cv::Ptr<cv::cuda::FarnebackOpticalFlow> m_fb;
 
 	bool m_init = false;
+	bool need_roi = false;
 	float resize_x = 2.0f;
 	float resize_y = 2.0f;
 	int reset_cnt = 0;

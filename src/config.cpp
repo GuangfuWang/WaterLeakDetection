@@ -101,6 +101,12 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 		if (model_node["THRESHOLD_UPPER"].IsDefined()) {
 			THRESHOLD_UPPER = model_node["THRESHOLD_UPPER"].as<float>();
 		}
+		if (model_node["RESET_COUNT"].IsDefined()) {
+			RESET_COUNT = model_node["RESET_COUNT"].as<int>();
+		}
+		if (model_node["ALARM_COUNT"].IsDefined()) {
+			ALARM_COUNT = model_node["ALARM_COUNT"].as<int>();
+		}
 		if (model_node["ENABLE_MOVING_AVERAGE"].IsDefined()) {
 			ENABLE_MOVING_AVERAGE = model_node["ENABLE_MOVING_AVERAGE"].as<bool>();
 		}
@@ -146,6 +152,9 @@ void Config::LoadConfigFile(int argc, char **argv, const std::string &file)
 		}
 		if (model_node["TEXT_OFFSET_Y"].IsDefined()) {
 			TEXT_OFFSET_Y = model_node["TEXT_OFFSET_Y"].as<unsigned int>();
+		}
+		if (model_node["FONT_SRC"].IsDefined()) {
+			FONT_SRC = model_node["FONT_SRC"].as<std::string>();
 		}
 	}
 	else {
