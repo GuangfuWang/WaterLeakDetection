@@ -1,8 +1,0 @@
-/home/gpu/dev/WaterLeakDetection/build/CMakeFiles/water_leak.dir
-/home/gpu/dev/WaterLeakDetection/build/CMakeFiles/water_leak_main.dir
-/home/gpu/dev/WaterLeakDetection/build/CMakeFiles/edit_cache.dir
-/home/gpu/dev/WaterLeakDetection/build/CMakeFiles/rebuild_cache.dir
-/home/gpu/dev/WaterLeakDetection/build/CMakeFiles/list_install_components.dir
-/home/gpu/dev/WaterLeakDetection/build/CMakeFiles/install.dir
-/home/gpu/dev/WaterLeakDetection/build/CMakeFiles/install/local.dir
-/home/gpu/dev/WaterLeakDetection/build/CMakeFiles/install/strip.dir
