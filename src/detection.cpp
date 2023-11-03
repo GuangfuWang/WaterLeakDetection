@@ -202,6 +202,9 @@ namespace water_leak
 					// std::cout << "detected!=======================\n";
 				}
 				
+			}else{
+				latency--;
+				if(latency<0)latency=0;
 			}
 			reset_cnt--;
 			if (0 == reset_cnt)
