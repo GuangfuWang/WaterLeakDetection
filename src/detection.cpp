@@ -15,7 +15,7 @@
 namespace water_leak
 {
 
-	void WaterLeakDetection::detectWithLK(cv::Mat &curr_img, int &res)
+	void WaterLeakDetection::detectWithLK(cv::Mat &curr_img, cv::Mat &orin, int &res)
 	{
 		cv::Mat temp;
 		cv::resize(curr_img, temp, cv::Size(curr_img.cols / resize_x, curr_img.rows / resize_y));
@@ -93,34 +93,43 @@ namespace water_leak
 			}
 		}
 	}
-	void WaterLeakDetection::detectWithFB(cv::Mat &curr_img, int &res)
+	void WaterLeakDetection::detectWithFB(cv::Mat &curr_img, cv::Mat &orin, int &res)
 	{
 		res = 0;
 		if (!m_init)
-		{		
-			if(m_config->USE_GPU){
+		{
+			if (m_config->USE_GPU)
+			{
 				cv::cuda::GpuMat temp(curr_img);
 				cv::cuda::resize(temp, temp, cv::Size(curr_img.cols / resize_x, curr_img.rows / resize_y));
 				init();
 				reset();
-				if(need_roi){
+				if (need_roi)
+				{
 					temp.copyTo(m_cuda_prev, m_cuda_mask);
-				}else{
+				}
+				else
+				{
 					temp.copyTo(m_cuda_prev);
 				}
-				
+
 				cv::cuda::cvtColor(m_cuda_prev, m_cuda_prev, cv::COLOR_BGR2GRAY);
-			}else {
+			}
+			else
+			{
 				cv::Mat temp;
 				cv::resize(curr_img, temp, cv::Size(curr_img.cols / resize_x, curr_img.rows / resize_y));
 				init();
 				reset();
-				if(need_roi){
+				if (need_roi)
+				{
 					temp.copyTo(m_prev, m_mask);
-				}else{
+				}
+				else
+				{
 					temp.copyTo(m_prev);
 				}
-				
+
 				cv::cvtColor(m_prev, m_prev, cv::COLOR_BGR2GRAY);
 			}
 			return;
@@ -128,38 +137,39 @@ namespace water_leak
 		if (m_config->USE_GPU)
 		{
 			cv::cuda::GpuMat temp;
-			cv::cuda::GpuMat tt(curr_img);		
+			cv::cuda::GpuMat tt(curr_img);
 			cv::cuda::resize(tt, temp, cv::Size(curr_img.cols / resize_x, curr_img.rows / resize_y));
 			cv::cuda::GpuMat process_img;
-			if(need_roi)
+			if (need_roi)
 				temp.copyTo(process_img, m_cuda_mask);
-			else{
+			else
+			{
 				temp.copyTo(process_img);
 			}
 			cv::cuda::cvtColor(process_img, process_img, cv::COLOR_BGR2GRAY);
-			cv::cuda::GpuMat flow(m_cuda_prev.size(),CV_32FC2);
-			m_fb->calc(m_cuda_prev,process_img,flow);
+			cv::cuda::GpuMat flow(m_cuda_prev.size(), CV_32FC2);
+			m_fb->calc(m_cuda_prev, process_img, flow);
 
 			cv::cuda::GpuMat flow_parts[2];
 			cv::cuda::split(flow, flow_parts);
 			cv::cuda::GpuMat magnitude, angle, magn_norm;
 			cv::cuda::cartToPolar(flow_parts[0], flow_parts[1], magnitude, angle, true);
-			cv::cuda::normalize(magnitude, magn_norm, 0.0f, 1.0f, cv::NORM_MINMAX,-1);
-			cv::cuda::GpuMat const_norm(angle.rows,angle.cols,angle.type(),
-				cv::Scalar::all((1.f / 360.f) * (180.f / 255.f)));
-			cv::cuda::multiply(angle,const_norm,angle);
+			cv::cuda::normalize(magnitude, magn_norm, 0.0f, 1.0f, cv::NORM_MINMAX, -1);
+			cv::cuda::GpuMat const_norm(angle.rows, angle.cols, angle.type(),
+										cv::Scalar::all((1.f / 360.f) * (180.f / 255.f)));
+			cv::cuda::multiply(angle, const_norm, angle);
 			// build hsv image
 			cv::cuda::GpuMat _hsv[3], hsv8, bgr;
 			_hsv[0] = angle;
-			_hsv[1] = cv::cuda::GpuMat(angle.rows,angle.cols, CV_32F,cv::Scalar::all(1.0f));
+			_hsv[1] = cv::cuda::GpuMat(angle.rows, angle.cols, CV_32F, cv::Scalar::all(1.0f));
 			_hsv[2] = magn_norm;
-			cv::cuda::GpuMat hsv(angle.rows,angle.cols,CV_32FC3);
+			cv::cuda::GpuMat hsv(angle.rows, angle.cols, CV_32FC3);
 			cv::cuda::merge(_hsv, 3, hsv);
 			hsv.convertTo(hsv8, CV_8U, 255.0);
 			cv::cuda::cvtColor(hsv8, bgr, cv::COLOR_HSV2BGR);
-			
+
 			cv::cuda::GpuMat bgr_;
-			cv::cuda::cvtColor(bgr,bgr_,cv::COLOR_BGR2GRAY);		
+			cv::cuda::cvtColor(bgr, bgr_, cv::COLOR_BGR2GRAY);
 			// bgr.setTo(0, bgr<0.15f);
 			cv::Mat flow_graph;
 			bgr_.download(flow_graph);
@@ -177,7 +187,7 @@ namespace water_leak
 			// 		if(flow_graph.at<uchar>(j,i)<100.0f){
 			// 			mask.at<uchar>(j,i) = 0;
 			// 		}
-			// 	}				
+			// 	}
 			// }
 			// cv::cuda::GpuMat temp_mask(mask);
 			// cv::cuda::cvtColor(temp_mask,temp_mask,cv::COLOR_GRAY2BGR);
@@ -187,9 +197,7 @@ namespace water_leak
 
 			// cv::cuda::add(temp,bgr,temp);
 			auto mean_score = cv::mean(flow_graph);
-			cv::cuda::resize(temp,temp,cv::Size(curr_img.cols, curr_img.rows));
-			temp.download(curr_img);
-			
+
 			m_prev_res.push_back(mean_score[0]);
 			auto sum = 0.0f;
 			if (m_prev_res.size() > m_config->MOVING_LEN * 2)
@@ -201,40 +209,62 @@ namespace water_leak
 				sum /= 4.0f;
 				auto it = m_prev_res.begin();
 				int cnt = 0;
-				for(;it<m_prev_res.end()&&cnt<2;it++){
+				for (; it < m_prev_res.end() && cnt < 2; it++)
+				{
 					cnt++;
 					m_prev_res.erase(it);
 				}
 			}
 			// std::cout<<"Mean: "<<sum<<"/ Threshold: "<<m_config->THRESHOLD<<std::endl;
 			if (sum > m_config->THRESHOLD)
-			{				
-				latency+=2;
-				if(latency>=2*m_config->ALARM_COUNT){
+			{
+				latency += 2;
+				if (latency >= 2 * m_config->ALARM_COUNT)
+				{
 					res = 1;
 					latency = 0;
+					alarm_cnt = 60;
 					// std::cout << "detected!=======================\n";
 				}
-				
-			}else{
-				latency--;
-				if(latency<0)latency=0;
 			}
+			else
+			{
+				latency--;
+				if (latency < 0)
+					latency = 0;
+			}
+			if (alarm_cnt)
+			{
+				// cv::cuda::add(temp, bgr, temp);
+				cv::Mat img;
+				cv::cuda::resize(bgr, bgr, cv::Size(curr_img.cols, curr_img.rows));
+				bgr.download(img);
+				cv::add(orin, img, orin);
+			}
+			alarm_cnt--;
+			if (alarm_cnt < 0)
+				alarm_cnt = 0;
+			// cv::cuda::resize(temp, temp, cv::Size(curr_img.cols, curr_img.rows));
+			// temp.download(curr_img);
 			m_cuda_prev = process_img.clone();
 			reset_cnt--;
 			if (0 == reset_cnt)
 			{
 				reset();
-				
 			}
-		}else{
-			cv::Mat temp;		
+		}
+		else
+		{
+			cv::Mat temp;
 			cv::resize(curr_img, temp, cv::Size(curr_img.cols / resize_x, curr_img.rows / resize_y));
 			cv::Mat process_img;
-			if(need_roi){
+			if (need_roi)
+			{
 				temp.copyTo(process_img, m_mask);
-			}else temp.copyTo(process_img);
-			
+			}
+			else
+				temp.copyTo(process_img);
+
 			cv::cvtColor(process_img, process_img, cv::COLOR_BGR2GRAY);
 
 			cv::Mat flow(m_prev.size(), CV_32FC2);
@@ -259,11 +289,9 @@ namespace water_leak
 			hsv.convertTo(hsv8, CV_8U, 255.0);
 			cv::cvtColor(hsv8, bgr, cv::COLOR_HSV2BGR);
 
-			// cv::add(temp, bgr, temp);
-			
-			cv::resize(temp, curr_img, curr_img.size());
-			cv::Mat flow_graph;
-			cv::cvtColor(bgr, flow_graph, cv::COLOR_BGR2GRAY);
+			cv::Mat flow_graph, bgr_;
+			bgr_ = bgr.clone();
+			cv::cvtColor(bgr_, flow_graph, cv::COLOR_BGR2GRAY);
 			auto mean_score = cv::mean(flow_graph);
 
 			m_prev_res.push_back(mean_score[0]);
@@ -277,7 +305,8 @@ namespace water_leak
 				sum /= 4.0f;
 				auto it = m_prev_res.begin();
 				int cnt = 0;
-				for(;it<m_prev_res.end()&&cnt<2;it++){
+				for (; it < m_prev_res.end() && cnt < 2; it++)
+				{
 					cnt++;
 					m_prev_res.erase(it);
 				}
@@ -286,35 +315,45 @@ namespace water_leak
 			// std::cout<<"Current: "<<mean_score[0]<<std::endl;
 			if (sum > m_config->THRESHOLD)
 			{
-				latency+=2;
-				if(latency>=2*m_config->ALARM_COUNT){
+				latency += 2;
+				if (latency >= 2 * m_config->ALARM_COUNT)
+				{
 					res = 1;
 					latency = 0;
+					alarm_cnt = 60;
 					// std::cout << "detected!=======================\n";
 				}
-				
-			}else{
-				latency--;
-				if(latency<0)latency=0;
 			}
+			else
+			{
+				latency--;
+				if (latency < 0)
+					latency = 0;
+			}
+			if (alarm_cnt)
+			{
+				cv::resize(bgr, bgr, curr_img.size());
+				cv::add(orin, bgr, orin);
+			}
+			// cv::add(temp, bgr, temp);
+			cv::resize(temp, curr_img, curr_img.size());
 			reset_cnt--;
 			m_prev = process_img.clone();
 			if (0 == reset_cnt)
 			{
 				reset();
-				
 			}
 		}
 	}
 
-	void WaterLeakDetection::detect(cv::Mat &curr_img, int &res)
+	void WaterLeakDetection::detect(cv::Mat &curr_img, cv::Mat &orin, int &res)
 	{
 		if (m_config->FLOW_METHOD == FlowType::FARNEBACK)
 		{
-			detectWithFB(curr_img, res);
+			detectWithFB(curr_img, orin, res);
 		}
 		else
-			detectWithLK(curr_img, res);
+			detectWithLK(curr_img, orin, res);
 	}
 
 	// the image is gray/resized/masked.
@@ -348,12 +387,13 @@ namespace water_leak
 		m_mask = cv::Mat::zeros(h / resize_y, w / resize_x, CV_8UC3);
 		cv::rectangle(m_mask, cv::Rect(rect[0] / resize_x, rect[1] / resize_y, (rect[2] - rect[0]) / resize_x, (rect[3] - rect[1]) / resize_y),
 					  cv::Scalar(255, 255, 255), -1);
-		if(m_config->USE_GPU){
+		if (m_config->USE_GPU)
+		{
 			m_cuda_mask.upload(m_mask);
 			m_fb = cv::cuda::FarnebackOpticalFlow::create(m_config->FB_LEVELS,
-				m_config->FB_PYR_SACLE,false,m_config->FB_WINSIZE,
-				m_config->FB_ITERATIONS,m_config->FB_POLY_N,
-				m_config->FB_POLYSIGMA,m_config->FB_FLAGS);
+														  m_config->FB_PYR_SACLE, false, m_config->FB_WINSIZE,
+														  m_config->FB_ITERATIONS, m_config->FB_POLY_N,
+														  m_config->FB_POLYSIGMA, m_config->FB_FLAGS);
 		}
 		if (m_config->FLOW_METHOD == FlowType::LK)
 		{

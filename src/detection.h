@@ -19,10 +19,10 @@ public:
 	explicit WaterLeakDetection(SharedRef<Config>& config);
 	~WaterLeakDetection();
 
-	void detect(cv::Mat &curr_img, int &res);
+	void detect(cv::Mat &curr_img, cv::Mat& orin, int &res);
 private:
-	void detectWithLK(cv::Mat &curr_img, int &res);
-	void detectWithFB(cv::Mat &curr_img, int &res);
+	void detectWithLK(cv::Mat &curr_img, cv::Mat& orin, int &res);
+	void detectWithFB(cv::Mat &curr_img,cv::Mat& orin, int &res);
 	void detectWithGPU(cv::Mat &curr_img, int &res);
 	void detectWithCPU(cv::Mat &curr_img, int &res);
 	void init();
@@ -54,6 +54,7 @@ private:
 	float resize_y = 2.0f;
 	int reset_cnt = 0;
 	int latency = 0;
+	int alarm_cnt = 0;
 
 };
 }
