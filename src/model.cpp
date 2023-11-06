@@ -95,20 +95,20 @@ namespace water_leak
 	void SetPara_Algorithm(cvModel *pModel, int algID)
 	{
 		// for test.
-		auto model = reinterpret_cast<InferModel *>(pModel->iModel);
-		auto roi = pModel->p;
-		pModel->pointNum = {4};
-		roi[0].x = 100;
-		roi[0].y = 150;
+		// auto model = reinterpret_cast<InferModel *>(pModel->iModel);
+		// auto roi = pModel->p;
+		// pModel->pointNum = {4};
+		// roi[0].x = 100;
+		// roi[0].y = 150;
 
-		roi[1].x = 1500;
-		roi[1].y = 150;
+		// roi[1].x = 1500;
+		// roi[1].y = 150;
 
-		roi[2].x = 1500;
-		roi[2].y = 1000;
+		// roi[2].x = 1500;
+		// roi[2].y = 1000;
 
-		roi[3].x = 100;
-		roi[3].y = 1000;
+		// roi[3].x = 100;
+		// roi[3].y = 1000;
 	}
 	void UpdateParams_Algorithm(cvModel *pModel)
 	{
