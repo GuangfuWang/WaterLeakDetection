@@ -94,7 +94,7 @@ namespace water_leak
 	}
 	void SetPara_Algorithm(cvModel *pModel, int algID)
 	{
-		//for test.		
+		// for test.
 		auto model = reinterpret_cast<InferModel *>(pModel->iModel);
 		auto roi = pModel->p;
 		pModel->pointNum = {4};
@@ -128,7 +128,7 @@ namespace water_leak
 		cv::Mat removed_roi;
 		auto config = model->m_config;
 		input_frame.copyTo(removed_roi, model->m_roi);
-		model->mDeploy->detect(removed_roi, input_frame,pModel->alarm);
+		model->mDeploy->detect(removed_roi, input_frame, pModel->alarm);
 
 		int sums = 0;
 		for (auto &each : pModel->pointNum)
