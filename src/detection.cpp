@@ -337,7 +337,8 @@ namespace water_leak
 			}
 			// cv::add(temp, bgr, temp);
 			// cv::resize(temp, curr_img, curr_img.size());
-			if(alarm_cnt==0)alarm_cnt=0;
+			if (alarm_cnt == 0)
+				alarm_cnt = 0;
 			reset_cnt--;
 			m_prev = process_img.clone();
 			if (0 == reset_cnt)
