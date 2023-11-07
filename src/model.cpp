@@ -129,7 +129,8 @@ namespace water_leak
 		auto config = model->m_config;
 		input_frame.copyTo(removed_roi, model->m_roi);
 		model->mDeploy->detect(removed_roi, input_frame, pModel->alarm);
-
+		// if(pModel->alarm)std::cout<<
+		// 	"alarm=============="<<std::endl;
 		int sums = 0;
 		for (auto &each : pModel->pointNum)
 		{

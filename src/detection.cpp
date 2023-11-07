@@ -114,6 +114,7 @@ namespace water_leak
 				}
 
 				cv::cuda::cvtColor(m_cuda_prev, m_cuda_prev, cv::COLOR_BGR2GRAY);
+				cv::cuda::equalizeHist(m_cuda_prev, m_cuda_prev);
 			}
 			else
 			{
@@ -147,110 +148,91 @@ namespace water_leak
 				temp.copyTo(process_img);
 			}
 			cv::cuda::cvtColor(process_img, process_img, cv::COLOR_BGR2GRAY);
-			cv::cuda::GpuMat flow(m_cuda_prev.size(), CV_32FC2);
-			m_fb->calc(m_cuda_prev, process_img, flow);
+			cv::cuda::equalizeHist(process_img, process_img);
 
-			cv::cuda::GpuMat flow_parts[2];
-			cv::cuda::split(flow, flow_parts);
-			cv::cuda::GpuMat magnitude, angle, magn_norm;
-			cv::cuda::cartToPolar(flow_parts[0], flow_parts[1], magnitude, angle, true);
-			cv::cuda::normalize(magnitude, magn_norm, 0.0f, 1.0f, cv::NORM_MINMAX, -1);
-			cv::cuda::GpuMat const_norm(angle.rows, angle.cols, angle.type(),
-										cv::Scalar::all((1.f / 360.f) * (180.f / 255.f)));
-			cv::cuda::multiply(angle, const_norm, angle);
-			// build hsv image
-			cv::cuda::GpuMat _hsv[3], hsv8, bgr;
-			_hsv[0] = angle;
-			_hsv[1] = cv::cuda::GpuMat(angle.rows, angle.cols, CV_32F, cv::Scalar::all(1.0f));
-			_hsv[2] = magn_norm;
-			cv::cuda::GpuMat hsv(angle.rows, angle.cols, CV_32FC3);
-			cv::cuda::merge(_hsv, 3, hsv);
-			hsv.convertTo(hsv8, CV_8U, 255.0);
-			cv::cuda::cvtColor(hsv8, bgr, cv::COLOR_HSV2BGR);
+			cv::cuda::GpuMat sub;
+			cv::cuda::absdiff(m_cuda_prev, process_img, sub);
+			cv::Mat sub_cpu;
+			sub.download(sub_cpu);
+			double abs_mean = cv::mean(sub_cpu)[0];
+			if (abs_mean >= m_config->THRESHOLD_UPPER)
+			{
+				cv::cuda::GpuMat flow(m_cuda_prev.size(), CV_32FC2);				
+				m_fb->calc(m_cuda_prev, process_img, flow);
+				cv::cuda::GpuMat flow_parts[2];
+				cv::cuda::split(flow, flow_parts);
 
-			cv::cuda::GpuMat bgr_;
-			cv::cuda::cvtColor(bgr, bgr_, cv::COLOR_BGR2GRAY);
-			// bgr.setTo(0, bgr<0.15f);
-			cv::Mat flow_graph;
-			bgr_.download(flow_graph);
-			// int count = 0;
-			// double mean = 0.0;
-			// cv::Mat mask(flow_graph.size(),flow_graph.type(),cv::Scalar::all(1));
-			// for (size_t i = 0; i < bgr.cols; i++)
-			// {
-			// 	for (size_t j = 0; j < bgr.rows; j++)
-			// 	{
-			// 		if(flow_graph.at<uchar>(j,i)>100.0f){
-			// 			count++;
-			// 			mean += flow_graph.at<uchar>(j,i);
-			// 		}
-			// 		if(flow_graph.at<uchar>(j,i)<100.0f){
-			// 			mask.at<uchar>(j,i) = 0;
-			// 		}
-			// 	}
-			// }
-			// cv::cuda::GpuMat temp_mask(mask);
-			// cv::cuda::cvtColor(temp_mask,temp_mask,cv::COLOR_GRAY2BGR);
-			// bgr.setTo(0,temp_mask);
-			// cv::cuda::add(temp, bgr, temp);
-			// if(count>0)mean/=count;
+				cv::cuda::GpuMat magnitude, angle, magn_norm;
+				cv::cuda::cartToPolar(flow_parts[0], flow_parts[1], magnitude, angle, true);
+				cv::cuda::normalize(magnitude, magn_norm, 0.0f, 1.0f, cv::NORM_MINMAX, -1);
+				cv::cuda::GpuMat const_norm(angle.rows, angle.cols, angle.type(),
+											cv::Scalar::all((1.f / 360.f) * (180.f / 255.f)));
+				cv::cuda::multiply(angle, const_norm, angle);
+				// build hsv image
+				cv::cuda::GpuMat _hsv[3], hsv8, bgr;
+				_hsv[0] = angle;
+				_hsv[1] = cv::cuda::GpuMat(angle.rows, angle.cols, CV_32F, cv::Scalar::all(1.0f));
+				_hsv[2] = magn_norm;
 
-			// cv::cuda::add(temp,bgr,temp);
-			auto mean_score = cv::mean(flow_graph);
+				cv::cuda::GpuMat hsv(angle.rows, angle.cols, CV_32FC3);
+				cv::cuda::merge(_hsv, 3, hsv);
+				hsv.convertTo(hsv8, CV_8U, 255.0);
+				cv::cuda::cvtColor(hsv8, bgr, cv::COLOR_HSV2BGR);
 
-			m_prev_res.push_back(mean_score[0]);
-			auto sum = 0.0f;
-			if (m_prev_res.size() > m_config->MOVING_LEN * 2)
-			{
-				for (int i = m_prev_res.size() - 1; i >= 0 && i > m_prev_res.size() - 5; i--)
-				{
-					sum += m_prev_res[i];
-				}
-				sum /= 4.0f;
-				auto it = m_prev_res.begin();
-				int cnt = 0;
-				for (; it < m_prev_res.end() && cnt < 2; it++)
-				{
-					cnt++;
-					m_prev_res.erase(it);
-				}
-			}
-			// std::cout<<"Mean: "<<sum<<"/ Threshold: "<<m_config->THRESHOLD<<std::endl;
-			if (sum > m_config->THRESHOLD)
-			{
-				latency += 2;
-				if (latency >= 2 * m_config->ALARM_COUNT)
-				{
-					res = 1;
-					latency = 0;
-					alarm_cnt = 60;
-					// std::cout << "detected!=======================\n";
-				}
-			}
-			else
-			{
-				latency--;
-				if (latency < 0)
-					latency = 0;
-			}
-			if (alarm_cnt)
-			{
-				// cv::cuda::add(temp, bgr, temp);
+				cv::cuda::GpuMat bgr_;
+				cv::cuda::cvtColor(bgr, bgr_, cv::COLOR_BGR2GRAY);
+				// bgr.setTo(0, bgr<0.15f);
+				cv::Mat flow_graph;
+				bgr_.download(flow_graph);
 				cv::Mat img;
 				cv::cuda::resize(bgr, bgr, cv::Size(curr_img.cols, curr_img.rows));
 				bgr.download(img);
-				cv::add(orin, img, orin);
+				auto mean_score = cv::mean(flow_graph);
+
+				// std::cout<<"Curr Mean: "<<mean_score[0]<<std::endl;
+
+				m_prev_res.push_back(mean_score[0]);
+				auto sum = 0.0f;
+				if (m_prev_res.size() > m_config->MOVING_LEN * 2)
+				{
+					for (int i = m_prev_res.size() - 1; i >= 0 && i > m_prev_res.size() - 5; i--)
+					{
+						sum += m_prev_res[i];
+					}
+					sum /= 4.0f;
+					m_prev_res.erase(m_prev_res.begin());
+				}
+				// std::cout << "Mean: " << sum << "/ Threshold: " << m_config->THRESHOLD << std::endl;
+				if (sum > m_config->THRESHOLD)
+				{
+					latency += 2;
+					if (latency >= 2 * m_config->ALARM_COUNT)
+					{
+						res = 1;
+						latency = 0;
+						alarm_cnt = 60;
+					}
+				}
+				else
+				{
+					latency--;
+					if (latency < 0)
+						latency = 0;
+				}
+				if (alarm_cnt)
+				{
+					cv::add(orin, img, orin);
+				}
+				alarm_cnt--;
+				if (alarm_cnt < 0)
+					alarm_cnt = 0;
 			}
-			alarm_cnt--;
-			if (alarm_cnt < 0)
-				alarm_cnt = 0;
-			// cv::cuda::resize(temp, temp, cv::Size(curr_img.cols, curr_img.rows));
-			// temp.download(curr_img);
-			m_cuda_prev = process_img.clone();
+
 			reset_cnt--;
 			if (0 == reset_cnt)
 			{
 				reset();
+				m_cuda_prev = process_img.clone();
 			}
 		}
 		else

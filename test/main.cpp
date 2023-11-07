@@ -8,7 +8,7 @@ using namespace water_leak;
 int main(int argc, char** argv){
 	using path = std::filesystem::path;
 	//prepare the input data.
-	auto file = "/home/gpu/Downloads/datasets/water_leak/split/noleak1-Trim.mp4";
+	auto file = "/home/gpu/Downloads/datasets/water_leak/agg.mp4";
 	
 	if(!Util::checkFileExist(file)){
 		std::cerr<<"Given video is not exist..."<<std::endl;
