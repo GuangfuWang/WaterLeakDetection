@@ -1,10 +1,11 @@
 #pragma once
 #include "util.h"
 #include "config.h"
-#include <opencv4/opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp>
 #include <opencv2/core/cuda.hpp>
 #include <opencv2/cudaimgproc.hpp>
 #include <opencv2/cudaoptflow.hpp>
+#include <opencv2/cudafilters.hpp>
 
 
 namespace water_leak
@@ -47,6 +48,8 @@ private:
 
 	//for FB stuff.
 	cv::Ptr<cv::cuda::FarnebackOpticalFlow> m_fb;
+	cv::Ptr<cv::cuda::Filter> m_gauss = cv::cuda::createGaussianFilter(0, 0, 
+	cv::Size(5, 5), 1.5, 0); 
 
 	bool m_init = false;
 	bool need_roi = false;

@@ -114,7 +114,9 @@ namespace water_leak
 				}
 
 				cv::cuda::cvtColor(m_cuda_prev, m_cuda_prev, cv::COLOR_BGR2GRAY);
-				cv::cuda::equalizeHist(m_cuda_prev, m_cuda_prev);
+				// cv::cuda::equalizeHist(m_cuda_prev, m_cuda_prev);
+				// std::cout << m_cuda_prev.type() << std::endl;
+				m_gauss->apply(m_cuda_prev, m_cuda_prev);
 			}
 			else
 			{
@@ -148,16 +150,18 @@ namespace water_leak
 				temp.copyTo(process_img);
 			}
 			cv::cuda::cvtColor(process_img, process_img, cv::COLOR_BGR2GRAY);
-			cv::cuda::equalizeHist(process_img, process_img);
+			// cv::cuda::equalizeHist(process_img, process_img);
+			m_gauss->apply(process_img, process_img);
 
 			cv::cuda::GpuMat sub;
 			cv::cuda::absdiff(m_cuda_prev, process_img, sub);
 			cv::Mat sub_cpu;
 			sub.download(sub_cpu);
 			double abs_mean = cv::mean(sub_cpu)[0];
+			// std::cout << abs_mean << std::endl;
 			if (abs_mean >= m_config->THRESHOLD_UPPER)
 			{
-				cv::cuda::GpuMat flow(m_cuda_prev.size(), CV_32FC2);				
+				cv::cuda::GpuMat flow(m_cuda_prev.size(), CV_32FC2);
 				m_fb->calc(m_cuda_prev, process_img, flow);
 				cv::cuda::GpuMat flow_parts[2];
 				cv::cuda::split(flow, flow_parts);
@@ -221,6 +225,28 @@ namespace water_leak
 				}
 				if (alarm_cnt)
 				{
+					cv::Moments curr = cv::moments(flow_graph, true);
+					cv::Point center(curr.m10 / curr.m00, curr.m01 / curr.m00);
+					const int w = orin.cols * 0.4;
+					const int h = orin.rows * 0.4;
+
+					auto color_alarm = cv::Scalar(0, 0, 255);
+
+					cv::line(orin, cv::Point(center.x - w / 2, center.y - h / 2),
+							 cv::Point(center.x + w / 2, center.y - h / 2), color_alarm,
+							 m_config->DRAW_LINE_WIDTH);
+
+					cv::line(orin, cv::Point(center.x + w / 2, center.y - h / 2),
+							 cv::Point(center.x + w / 2, center.y + h / 2), color_alarm,
+							 m_config->DRAW_LINE_WIDTH);
+
+					cv::line(orin, cv::Point(center.x + w / 2, center.y + h / 2),
+							 cv::Point(center.x - w / 2, center.y + h / 2), color_alarm,
+							 m_config->DRAW_LINE_WIDTH);
+
+					cv::line(orin, cv::Point(center.x - w / 2, center.y + h / 2),
+							 cv::Point(center.x - w / 2, center.y - h / 2), color_alarm,
+							 m_config->DRAW_LINE_WIDTH);
 					cv::add(orin, img, orin);
 				}
 				alarm_cnt--;
