@@ -14,12 +14,14 @@ namespace water_leak
 		InferModel(SharedRef<Config> &config)
 		{
 			mDeploy = createSharedRef<WaterLeakDetection>(config);
-			m_config = config;
-			m_font = cv::freetype::createFreeType2();
+			m_config = config;			
 			if (!Util::checkFileExist(config->FONT_SRC))
 				std::cerr << "Font file not found!" << std::endl;
-			else
+			else{
+				m_font = cv::freetype::createFreeType2();
 				m_font->loadFontData(config->FONT_SRC, 0);
+			}
+				
 		}
 
 	public:
