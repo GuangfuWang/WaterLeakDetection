@@ -158,6 +158,7 @@ namespace water_leak
 			cv::Mat sub_cpu;
 			sub.download(sub_cpu);
 			double abs_mean = cv::mean(sub_cpu)[0];
+			bool reset_flag = false;
 			// std::cout << abs_mean << std::endl;
 			if (abs_mean >= m_config->THRESHOLD_UPPER)
 			{
@@ -252,13 +253,15 @@ namespace water_leak
 				alarm_cnt--;
 				if (alarm_cnt < 0)
 					alarm_cnt = 0;
+			}else{
+				reset_flag = true;
 			}
 
 			reset_cnt--;
 			if (0 == reset_cnt)
 			{
 				reset();
-				m_cuda_prev = process_img.clone();
+				if(reset_flag)m_cuda_prev = process_img.clone();
 			}
 		}
 		else
