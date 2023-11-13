@@ -261,7 +261,7 @@ namespace water_leak
 			if (0 == reset_cnt)
 			{
 				reset();
-				if(reset_flag)m_cuda_prev = process_img.clone();
+				m_cuda_prev = process_img.clone();// if(reset_flag)
 			}
 		}
 		else
